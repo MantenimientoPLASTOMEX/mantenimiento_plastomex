@@ -314,7 +314,7 @@ tr:hover td{background:#fafdfb;}
 <div class="overlay" id="modal-orden"><div class="modal">
   <h2 id="ordenTitulo">Nueva orden</h2><p class="sub">Registra un trabajo de mantenimiento.</p>
   <input type="hidden" id="o-folio">
-  <div class="field"><label>Máquina *</label><select id="o-maquina"><option value="">— Selecciona —</option></select></div>
+  <div class="field"><label>Equipo *</label><select id="o-equipo"><option value="">— Selecciona —</option></select></div>
   <div class="field"><label>Solicitante *</label><select id="o-solicitante"><option value="">— Selecciona —</option></select></div>
   <div class="field"><label>Tipo</label>
     <select id="o-tipo"><option>Correctivo</option><option>Preventivo</option><option>Cambio</option></select></div>
@@ -407,7 +407,7 @@ tr:hover td{background:#fafdfb;}
 <!-- TÉCNICO (nuevo) -->
 <div class="overlay" id="modal-tecnico"><div class="modal"><h2>Nuevo técnico</h2><p class="sub">Registra al personal.</p>
   <div class="field"><label>Nombre</label><input id="t-nombre"></div>
-  <div class="field"><label>Especialidad</label><input id="t-esp"></div>
+  <div class="field"><label>Estudios</label><input id="t-esp"></div>
   <div class="field"><label>Capacitación</label><select id="t-cap"><option>Pendiente</option><option>En curso</option><option>Completada</option></select></div>
   <div class="field"><label>Evaluación (0-100)</label><input id="t-eval" type="number"></div>
   <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('tecnico')">Cancelar</button><button class="btn" onclick="saveTecnico()">Guardar</button></div></div></div>
@@ -421,13 +421,13 @@ tr:hover td{background:#fafdfb;}
   </div>
 </div></div>
 
-<!-- MÁQUINA -->
-<div class="overlay" id="modal-maquina"><div class="modal"><h2>Nueva máquina</h2><p class="sub">Agrega un equipo.</p>
+<!-- EQUIPO -->
+<div class="overlay" id="modal-equipo"><div class="modal"><h2>Agregar</h2><p class="sub">Agrega un equipo.</p>
   <div class="field"><label>Nombre</label><input id="m-nombre"></div>
   <div class="field"><label>Área</label><input id="m-area"></div>
   <div class="field"><label>Manual o video (enlace)</label><input id="m-doc"></div>
   <div class="field"><label>Foto</label><input type="file" id="m-foto" accept="image/*"></div>
-  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('maquina')">Cancelar</button><button class="btn" onclick="saveMaquina()">Guardar</button></div></div></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('equipo')">Cancelar</button><button class="btn" onclick="saveMaquina()">Guardar</button></div></div></div>
 
 <!-- REFACCIÓN -->
 <div class="overlay" id="modal-refaccion"><div class="modal"><h2>Nueva refacción</h2><p class="sub">Agrega al inventario.</p>
@@ -466,13 +466,13 @@ tr:hover td{background:#fafdfb;}
 
 <script>
 /* ============================================================
-   ⬇ PEGA AQUÍ TU URL DEL APPS SCRIPT ⬇
+   ⬇ URL DEL APPS SCRIPT ⬇
    ============================================================ */
 const API_URL  = "https://script.google.com/macros/s/AKfycbz5jALi_BD0Yy2a5eW9l5C8v55MJV3yz-LmUuWM0MpbQqklWB_XM3nK5B-nA24agltsFw/exec";
 const LOGO_URL = "https://www.plastomex.com/img/testimonios/PLASTOMEX.png";
 /* ============================================================ */
 
-let datos = {Ordenes:[],Tecnicos:[],Maquinas:[],Refacciones:[],Seguimiento:[],
+let datos = {Ordenes:[],Tecnicos:[],Equipos:[],Refacciones:[],Seguimiento:[],
              Modulos:[],Capacitacion:[],Reportes_Semanales:[],Intervenciones:[],
              Solicitantes:[],UsuariosInfo:[],alertasEspera:0};
 let usuarioActual = null;
