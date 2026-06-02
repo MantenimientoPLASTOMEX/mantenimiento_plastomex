@@ -192,7 +192,7 @@ tr:hover td{background:#fafdfb;}
         <input id="buscar" placeholder="🔍 Buscar por folio, máquina o solicitante…" oninput="renderOrdenes()">
         <select id="filtroEstado" onchange="renderOrdenes()">
           <option value="">Todos los estados</option>
-          <option>Abierta</option><option>Proceso</option><option value="Espera Almacen">Espera Almacén</option>
+          <option>Abierta</option><option>Proceso</option><option value="Espera por Almacen">Espera Almacén</option>
           <option>Cerrada</option><option>Entregada</option><option>Cancelada</option>
         </select>
         <select id="filtroPrioridad" onchange="renderOrdenes()">
@@ -201,7 +201,7 @@ tr:hover td{background:#fafdfb;}
           <option>Operacion detenida</option><option>Transporte detenido</option>
         </select>
       </div>
-      <div class="card"><table><thead><tr><th>Folio</th><th>Máquina</th><th>Solicitante</th><th>Prioridad</th><th>Tipo</th><th>Estado</th><th>Atendida por</th><th>Acciones</th></tr></thead>
+      <div class="card"><table><thead><tr><th>Folio</th><th>Equipo</th><th>Solicitante</th><th>Prioridad</th><th>Tipo</th><th>Estado</th><th>Atendida por</th><th>Acciones</th></tr></thead>
         <tbody id="tbody-ordenes"></tbody></table><div class="empty hidden" id="empty-ordenes">No hay órdenes que coincidan.</div></div>
     </section>
 
@@ -209,16 +209,16 @@ tr:hover td{background:#fafdfb;}
     <section id="view-tecnicos" class="hidden">
       <div class="view-head"><div><h1>Técnicos</h1><p>Personal, capacitaciones y evaluaciones.</p></div>
         <button class="btn" id="btnNuevoTec" onclick="openModal('tecnico')">+ Nuevo técnico</button></div>
-      <div class="card"><table><thead><tr><th>Nombre</th><th>Especialidad</th><th>Capacitación</th><th>% Competencia</th><th>Acciones</th></tr></thead>
+      <div class="card"><table><thead><tr><th>Nombre</th><th>Carrera</th><th>Especialidad</th><th>Capacitación</th><th>% Competencia</th><th>Acciones</th></tr></thead>
         <tbody id="tbody-tecnicos"></tbody></table><div class="empty hidden" id="empty-tecnicos">Aún no hay técnicos.</div></div>
     </section>
 
-    <!-- MÁQUINAS -->
-    <section id="view-maquinas" class="hidden">
-      <div class="view-head"><div><h1>Máquinas</h1><p>Catálogo de equipos y documentación.</p></div>
-        <button class="btn" id="btnNuevaMaq" onclick="openModal('maquina')">+ Nueva máquina</button></div>
+    <!-- MÁQUINAS/EQUIPOS -->
+    <section id="view-Máquinas/equipos" class="hidden">
+      <div class="view-head"><div><h1>Máquinas/equipos</h1><p>Catálogo de equipos y documentación.</p></div>
+        <button class="btn" id="btnNuevaMaq" onclick="openModal('maquina/Equipo')">+ Nuevo </button></div>
       <div class="card"><table><thead><tr><th>Equipo</th><th>Área</th><th>Manual / Video</th><th>Foto</th></tr></thead>
-        <tbody id="tbody-maquinas"></tbody></table><div class="empty hidden" id="empty-maquinas">Aún no hay máquinas.</div></div>
+        <tbody id="tbody-maquinas"></tbody></table><div class="empty hidden" id="empty-maquinas/equipos">Aún no hay máquinas/equipos.</div></div>
     </section>
 
     <!-- REFACCIONES -->
