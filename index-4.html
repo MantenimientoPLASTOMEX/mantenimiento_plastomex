@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Mantenimiento — PLASTOMEX</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+:root{--green-deep:#0a3d2e;--green:#166b4a;--green-bright:#4caf3f;--green-pale:#e4f4e0;--ink:#0c1a14;--paper:#f4f8f5;--line:#d2e2d8;--amber:#e0962b;--blue:#3b7ea5;--purple:#6b4ba0;--rose:#c0556b;--orange:#c47a1e;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Archivo',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+
+/* ===== BARRA DE PROGRESO (reemplaza loader pantalla completa) ===== */
+.pbar{position:fixed;top:0;left:0;height:3px;z-index:600;width:0;display:none;background:var(--green-bright);}
+.pbar.show{display:block;animation:pbaranim 1.4s ease-in-out infinite;}
+@keyframes pbaranim{0%{width:0%;left:0;}50%{width:65%;left:18%;}100%{width:0%;left:100%;}}
+
+/* ===== LOGIN ===== */
+.login-screen{position:fixed;inset:0;background:var(--green-deep);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;}
+.login-box{background:#fff;border-radius:20px;padding:40px 34px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.login-logo{width:170px;height:auto;margin:0 auto 8px;display:block;}
+.login-logo-fallback{font-size:30px;font-weight:900;color:var(--green-bright);letter-spacing:-1px;}
+.login-logo-fallback span{color:var(--ink);}
+.login-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:#8aa093;text-transform:uppercase;margin-bottom:28px;}
+.login-box h2{font-size:20px;font-weight:800;margin-bottom:20px;text-align:left;}
+.login-box .field{margin-bottom:14px;text-align:left;}
+.login-box label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;}
+.login-box input{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:10px;font-family:'Archivo',sans-serif;font-size:15px;}
+.login-box input:focus{outline:none;border-color:var(--green-bright);}
+.login-error{color:var(--rose);font-size:13px;margin-bottom:12px;min-height:18px;font-weight:600;}
+.btn-login{width:100%;background:var(--green-bright);color:#fff;border:none;padding:14px;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;}
+
+/* ===== APP ===== */
+.app{display:none;}.app.show{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:var(--green-deep);color:#fff;padding:22px 16px;flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto;}
+.side-logo{width:100%;max-width:150px;background:#fff;border-radius:10px;padding:8px;margin-bottom:6px;}
+.side-logo-fallback{font-weight:900;font-size:20px;}.side-logo-fallback span{color:var(--green-bright);}
+.brand-sub{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:24px;}
+.nav-btn{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;background:transparent;border:none;color:rgba(255,255,255,0.75);font-family:'Archivo',sans-serif;font-size:15px;font-weight:600;text-align:left;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all .15s;}
+.nav-btn:hover{background:rgba(255,255,255,0.08);color:#fff;}.nav-btn.active{background:var(--green-bright);color:#fff;}.nav-btn .em{font-size:18px;}
+.nav-badge{margin-left:auto;background:var(--rose);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;min-width:20px;text-align:center;display:none;}
+.nav-badge.show{display:inline-block;}
+.user-chip{margin-top:auto;padding:14px;background:rgba(255,255,255,0.06);border-radius:10px;font-size:13px;}
+.user-chip .nm{font-weight:700;}.user-chip .rl{font-size:11px;color:var(--green-bright);text-transform:uppercase;letter-spacing:1px;}
+.logout{background:none;border:none;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;margin-top:8px;text-decoration:underline;padding:0;}
+.main{flex:1;padding:30px 36px;max-width:100%;overflow-x:auto;}
+.view-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;flex-wrap:wrap;gap:14px;}
+.view-head h1{font-size:27px;font-weight:900;letter-spacing:-0.5px;}.view-head p{color:#5a7367;font-size:14px;margin-top:2px;}
+.btn{background:var(--green-deep);color:#fff;border:none;padding:12px 20px;border-radius:10px;font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:transform .12s;}
+.btn:hover{transform:translateY(-2px);}.btn:disabled{background:#aab8b0;cursor:not-allowed;transform:none;}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:8px;}
+.btn-ghost{background:#fff;color:var(--green-deep);border:2px solid var(--line);}
+.btn-blue{background:var(--blue);}.btn-amber{background:var(--amber);}.btn-rose{background:var(--rose);}.btn-green{background:var(--green-bright);}.btn-purple{background:var(--purple);}.btn-orange{background:var(--orange);}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat{background:#fff;border:2px solid var(--line);border-radius:14px;padding:16px;}
+.stat .num{font-size:30px;font-weight:900;line-height:1;}.stat .lbl{font-size:12px;color:#5a7367;margin-top:5px;font-weight:600;}
+.stat.s-open{border-color:var(--blue);}.stat.s-open .num{color:var(--blue);}
+.stat.s-prog{border-color:var(--amber);}.stat.s-prog .num{color:var(--amber);}
+.stat.s-close{border-color:var(--green);}.stat.s-close .num{color:var(--green);}
+.stat.s-deliv{border-color:var(--purple);}.stat.s-deliv .num{color:var(--purple);}
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filters input,.filters select{padding:10px 13px;border:2px solid var(--line);border-radius:9px;font-family:'Archivo',sans-serif;font-size:14px;}
+.filters input{flex:1;min-width:200px;}
+.card{background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:13px 14px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#5a7367;background:var(--green-pale);font-weight:700;}
+td{padding:10px 12px;font-size:13px;border-top:1px solid var(--line);vertical-align:middle;}
+tr:hover td{background:#fafdfb;}
+.badge{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block;white-space:nowrap;}
+.b-Abierta{background:#d9eaf3;color:var(--blue);}
+.b-Proceso{background:#fbeed4;color:var(--amber);}
+.b-Espera{background:#fff0d4;color:var(--orange);}
+.b-Cerrada{background:var(--green-pale);color:var(--green);}
+.b-Entregada{background:#e3dcf3;color:var(--purple);}
+.b-Cancelada{background:#f0e0e3;color:var(--rose);text-decoration:line-through;}
+/* Prioridad badges */
+.pri{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.pri-Normal{background:#e4f4e0;color:var(--green);}
+.pri-Urgente{background:#fbeed4;color:var(--amber);}
+.pri-Parada,.pri-Detenida,.pri-Transporte{background:#f6dde2;color:var(--rose);}
+.acts{display:flex;gap:4px;flex-wrap:wrap;}
+.empty{padding:40px;text-align:center;color:#8aa093;font-size:14px;}
+.overlay{position:fixed;inset:0;background:rgba(10,26,20,0.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+.overlay.show{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.modal-big{max-width:720px;}
+.modal h2{font-size:21px;font-weight:900;margin-bottom:4px;}.modal .sub{color:#5a7367;font-size:13px;margin-bottom:18px;}
+.field{margin-bottom:14px;}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:2px solid var(--line);border-radius:9px;font-family:'Archivo',sans-serif;font-size:14px;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green-bright);}
+.field .hint{font-size:11px;color:#8aa093;margin-top:4px;}
+.field .hint.bad{color:var(--rose);}
+.modal-actions{display:flex;gap:10px;margin-top:20px;}.modal-actions .btn{flex:1;}
+.segui-list{margin-top:8px;max-height:220px;overflow-y:auto;}
+.segui-item{padding:10px 12px;background:var(--green-pale);border-radius:8px;margin-bottom:8px;font-size:13px;}
+.segui-item.espera{background:#fff0d4;}
+.segui-item.ok{background:#e4f4e0;}
+.segui-item .meta{font-family:'Space Mono',monospace;font-size:11px;color:var(--green);margin-bottom:3px;}
+.hidden{display:none !important;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green-deep);color:#fff;padding:14px 22px;border-radius:10px;font-weight:600;font-size:14px;z-index:250;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+/* Perfil */
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+.profile-card{background:#fff;border:2px solid var(--line);border-radius:14px;padding:22px;}
+.profile-card h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#5a7367;margin-bottom:14px;font-weight:800;}
+.profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;gap:14px;}
+.profile-row:last-child{border-bottom:none;}
+.profile-row .lbl{color:#5a7367;font-weight:600;flex-shrink:0;}.profile-row .val{font-weight:700;text-align:right;}
+.compet-bar{height:13px;background:var(--line);border-radius:8px;overflow:hidden;margin-top:8px;}
+.compet-fill{height:100%;background:linear-gradient(90deg,var(--green-bright),var(--green));transition:width .6s;}
+.scale-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.scale-btn{flex:1;min-width:32px;padding:8px 3px;border:2px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-family:'Archivo',sans-serif;font-size:13px;}
+.scale-btn.active{background:var(--green-bright);color:#fff;border-color:var(--green-bright);}
+.preview-fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.preview-fotos img{width:58px;height:58px;object-fit:cover;border-radius:6px;border:2px solid var(--line);cursor:pointer;}
+.foto-full{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:400;}
+.foto-full.show{display:flex;}
+.foto-full img{max-width:90%;max-height:90%;border-radius:8px;}
+.foto-full .closebtn{position:absolute;top:20px;right:24px;width:44px;height:44px;background:#fff;border:none;border-radius:50%;font-size:22px;cursor:pointer;font-weight:900;}
+.modulo-card{background:#fff;border:2px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.modulo-card.vencido{border-color:var(--rose);background:#fff5f6;}
+.modulo-card.completado{border-color:var(--green-bright);background:#f0f9ed;}
+.modulo-card .info{flex:1;min-width:180px;}
+.modulo-card .info h4{font-size:14px;font-weight:800;}
+.modulo-card .info p{font-size:12px;color:#5a7367;margin-top:2px;}
+/* Reportes bandeja */
+.reporte-card{background:#fff;border:2px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;}
+.reporte-card.pendiente{border-left:4px solid var(--amber);}
+.reporte-card.revisado{border-left:4px solid var(--green-bright);opacity:0.8;}
+.reporte-card h4{font-size:15px;font-weight:800;margin-bottom:4px;}
+.reporte-card .meta{font-family:'Space Mono',monospace;font-size:11px;color:#5a7367;margin-bottom:10px;}
+.reporte-row{font-size:13px;margin-bottom:5px;}
+.reporte-row b{color:var(--green-deep);}
+/* Tech profile modal */
+.tech-section{margin-bottom:18px;}
+.tech-section h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#5a7367;margin-bottom:10px;font-weight:800;border-bottom:2px solid var(--green-pale);padding-bottom:6px;}
+@media(max-width:720px){.app.show{flex-direction:column;}.sidebar{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;gap:6px;align-items:center;}.side-logo{max-width:110px;margin:0;}.brand-sub,.user-chip{display:none;}.nav-btn{width:auto;margin:0;}.stats,.profile-grid{grid-template-columns:1fr;}.main{padding:20px 16px;}}
+</style>
+</head>
+<body>
+
+<div class="pbar" id="pbar"></div>
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <img class="login-logo" id="loginLogo" style="display:none">
+    <div class="login-logo-fallback" id="loginLogoFallback">Plasto<span>mex</span></div>
+    <div class="login-sub">Sistema de Mantenimiento</div>
+    <h2>Iniciar sesión</h2>
+    <div class="field"><label>Usuario</label><input id="loginUser" autocomplete="off"></div>
+    <div class="field"><label>Contraseña</label><input id="loginPass" type="password"></div>
+    <div class="login-error" id="loginError"></div>
+    <button class="btn-login" onclick="hacerLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <nav class="sidebar">
+    <img class="side-logo" id="sideLogo" style="display:none">
+    <div class="side-logo-fallback" id="sideLogoFallback" style="color:#fff">Plasto<span>mex</span></div>
+    <div class="brand-sub">Mantenimiento</div>
+    <button class="nav-btn active" data-view="ordenes" onclick="showView('ordenes',this)"><span class="em">📋</span> Órdenes</button>
+    <button class="nav-btn" data-view="tecnicos" onclick="showView('tecnicos',this)"><span class="em">👷</span> Técnicos</button>
+    <button class="nav-btn" data-view="maquinas" onclick="showView('maquinas',this)"><span class="em">⚙️</span> Máquinas</button>
+    <button class="nav-btn" data-view="refacciones" onclick="showView('refacciones',this)"><span class="em">🔧</span> Refacciones</button>
+    <button class="nav-btn" data-view="reportes" onclick="showView('reportes',this)"><span class="em">📥</span> Reportes<span class="nav-badge" id="badgeReportes">0</span></button>
+    <button class="nav-btn" data-view="capacitacion" onclick="showView('capacitacion',this)"><span class="em">📚</span> Capacitación</button>
+    <button class="nav-btn" data-view="perfil" onclick="showView('perfil',this)"><span class="em">👤</span> Mi perfil</button>
+    <div class="user-chip">
+      <div class="nm" id="chipNombre">—</div>
+      <div class="rl" id="chipRol">—</div>
+      <button class="logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ÓRDENES -->
+    <section id="view-ordenes">
+      <div class="view-head"><div><h1>Órdenes de servicio</h1><p>Crea, asigna y da seguimiento a los trabajos.</p></div>
+        <button class="btn" id="btnNuevaOrden" onclick="nuevaOrden()">+ Nueva orden</button></div>
+      <div class="stats">
+        <div class="stat s-open"><div class="num" id="cnt-Abierta">0</div><div class="lbl">Abiertas</div></div>
+        <div class="stat s-prog"><div class="num" id="cnt-Proceso">0</div><div class="lbl">En proceso</div></div>
+        <div class="stat s-close"><div class="num" id="cnt-Cerrada">0</div><div class="lbl">Cerradas</div></div>
+        <div class="stat s-deliv"><div class="num" id="cnt-Entregada">0</div><div class="lbl">Entregadas</div></div>
+      </div>
+      <div class="filters">
+        <input id="buscar" placeholder="🔍 Buscar por folio, máquina o solicitante…" oninput="renderOrdenes()">
+        <select id="filtroEstado" onchange="renderOrdenes()">
+          <option value="">Todos los estados</option>
+          <option>Abierta</option><option>Proceso</option><option value="Espera Almacen">Espera Almacén</option>
+          <option>Cerrada</option><option>Entregada</option><option>Cancelada</option>
+        </select>
+        <select id="filtroPrioridad" onchange="renderOrdenes()">
+          <option value="">Todas las prioridades</option>
+          <option>Normal</option><option>Urgente</option><option>Maquinaria parada</option>
+          <option>Operacion detenida</option><option>Transporte detenido</option>
+        </select>
+      </div>
+      <div class="card"><table><thead><tr><th>Folio</th><th>Máquina</th><th>Solicitante</th><th>Prioridad</th><th>Tipo</th><th>Estado</th><th>Atendida por</th><th>Acciones</th></tr></thead>
+        <tbody id="tbody-ordenes"></tbody></table><div class="empty hidden" id="empty-ordenes">No hay órdenes que coincidan.</div></div>
+    </section>
+
+    <!-- TÉCNICOS -->
+    <section id="view-tecnicos" class="hidden">
+      <div class="view-head"><div><h1>Técnicos</h1><p>Personal, capacitaciones y evaluaciones.</p></div>
+        <button class="btn" id="btnNuevoTec" onclick="openModal('tecnico')">+ Nuevo técnico</button></div>
+      <div class="card"><table><thead><tr><th>Nombre</th><th>Especialidad</th><th>Capacitación</th><th>% Competencia</th><th>Acciones</th></tr></thead>
+        <tbody id="tbody-tecnicos"></tbody></table><div class="empty hidden" id="empty-tecnicos">Aún no hay técnicos.</div></div>
+    </section>
+
+    <!-- MÁQUINAS -->
+    <section id="view-maquinas" class="hidden">
+      <div class="view-head"><div><h1>Máquinas</h1><p>Catálogo de equipos y documentación.</p></div>
+        <button class="btn" id="btnNuevaMaq" onclick="openModal('maquina')">+ Nueva máquina</button></div>
+      <div class="card"><table><thead><tr><th>Equipo</th><th>Área</th><th>Manual / Video</th><th>Foto</th></tr></thead>
+        <tbody id="tbody-maquinas"></tbody></table><div class="empty hidden" id="empty-maquinas">Aún no hay máquinas.</div></div>
+    </section>
+
+    <!-- REFACCIONES -->
+    <section id="view-refacciones" class="hidden">
+      <div class="view-head"><div><h1>Refacciones y herramienta</h1><p>Inventario con control de existencias.</p></div>
+        <button class="btn" id="btnNuevaRef" onclick="openModal('refaccion')">+ Nueva refacción</button></div>
+      <div class="card"><table><thead><tr><th>Pieza</th><th>Máquina</th><th>Stock</th><th>Mínimo</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-refacciones"></tbody></table><div class="empty hidden" id="empty-refacciones">Aún no hay refacciones.</div></div>
+    </section>
+
+    <!-- REPORTES RECIBIDOS (coordinador) -->
+    <section id="view-reportes" class="hidden">
+      <div class="view-head"><div><h1>Reportes recibidos</h1><p>Evaluaciones y reportes semanales de los técnicos.</p></div></div>
+      <div class="filters">
+        <select id="filtroReporteTec" onchange="renderReportes()">
+          <option value="">Todos los técnicos</option>
+        </select>
+        <select id="filtroReporteEst" onchange="renderReportes()">
+          <option value="">Todos los estados</option>
+          <option value="Enviado">Pendientes de revisar</option>
+          <option value="Revisado">Revisados</option>
+          <option value="No enviado">No enviados</option>
+        </select>
+      </div>
+      <div id="reportes-list"></div>
+      <div class="empty hidden" id="empty-reportes">No hay reportes que coincidan.</div>
+    </section>
+
+    <!-- CAPACITACIÓN (técnico) -->
+    <section id="view-capacitacion" class="hidden">
+      <div class="view-head"><div><h1>Capacitación</h1><p>Tu plan personal y porcentaje de competencia.</p></div></div>
+      <div class="profile-card" style="margin-bottom:18px;">
+        <h3>Mi porcentaje de competencia</h3>
+        <div style="font-size:40px;font-weight:900;color:var(--green);" id="capPercent">0%</div>
+        <div class="compet-bar"><div class="compet-fill" id="capPercentBar" style="width:0%"></div></div>
+        <p style="font-size:12px;color:#5a7367;margin-top:8px;">Asignado por coordinación según tu avance en capacitación.</p>
+      </div>
+      <div id="cap-list"></div>
+      <div class="empty hidden" id="empty-cap">Aún no tienes módulos asignados.</div>
+    </section>
+
+    <!-- MI PERFIL (técnico) -->
+    <section id="view-perfil" class="hidden">
+      <div class="view-head"><div><h1>Mi perfil</h1><p>Tus datos y reporte semanal.</p></div></div>
+      <div class="profile-grid">
+        <div class="profile-card">
+          <h3>Mis datos</h3>
+          <div class="profile-row"><span class="lbl">Nombre</span><span class="val" id="p-nombre">—</span></div>
+          <div class="profile-row"><span class="lbl">Usuario</span><span class="val" id="p-usuario">—</span></div>
+          <div class="profile-row"><span class="lbl">Rol</span><span class="val" id="p-rol">—</span></div>
+          <div class="profile-row"><span class="lbl">Carrera</span><span class="val" id="p-carrera">—</span></div>
+          <div class="profile-row"><span class="lbl">Especialidad</span><span class="val" id="p-especialidad">—</span></div>
+          <div class="profile-row"><span class="lbl">Área</span><span class="val" id="p-area">—</span></div>
+          <div class="profile-row"><span class="lbl">Fecha ingreso</span><span class="val" id="p-fecha">—</span></div>
+          <div class="profile-row"><span class="lbl">Celular</span><span class="val" id="p-celular">—</span></div>
+          <div class="profile-row"><span class="lbl">Correo</span><span class="val" id="p-correo">—</span></div>
+        </div>
+        <div class="profile-card">
+          <h3>Nivel de competencia</h3>
+          <div style="font-size:40px;font-weight:900;color:var(--green);" id="p-percent">0%</div>
+          <div class="compet-bar"><div class="compet-fill" id="p-percent-bar" style="width:0%"></div></div>
+          <p style="font-size:12px;color:#5a7367;margin-top:8px;">Asignado por coordinación.</p>
+        </div>
+      </div>
+      <div class="profile-card" style="margin-bottom:18px;">
+        <h3>Reporte semanal</h3>
+        <p style="font-size:13px;color:#5a7367;margin-bottom:14px;">Cierre automático el domingo 23:59. Si no envías, queda como "No enviado".</p>
+        <div class="field"><label>Disponibilidad de herramienta y almacén</label>
+          <textarea id="rep-disp" rows="2" placeholder="Herramientas o insumos que no estuvieron disponibles…" oninput="checkReporte()"></textarea></div>
+        <div class="field"><label>Problemas o dificultades</label>
+          <textarea id="rep-prob" rows="2" placeholder="Cosas externas que dificultaron tu trabajo…" oninput="checkReporte()"></textarea></div>
+        <div class="field"><label>Aspectos positivos</label>
+          <textarea id="rep-pos" rows="2" placeholder="Logros o cosas que funcionaron bien…" oninput="checkReporte()"></textarea></div>
+        <div class="field"><label>Autoevaluación (1-10)</label>
+          <div class="scale-row" id="scaleRow"></div></div>
+        <div class="field"><label>Comentario de la autoevaluación</label>
+          <textarea id="rep-com" rows="2" placeholder="Por qué te diste esa calificación…" oninput="checkReporte()"></textarea></div>
+        <button class="btn btn-green" id="btnEnviarReporte" onclick="enviarReporte()" style="width:100%;" disabled>Enviar a coordinación</button>
+        <p class="hint bad" id="rep-hint" style="margin-top:8px;">Llena al menos un campo para enviar.</p>
+      </div>
+      <div class="profile-card">
+        <h3>Historial de reportes enviados</h3>
+        <div id="reportesHist"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== MODALES ===== -->
+
+<!-- ORDEN -->
+<div class="overlay" id="modal-orden"><div class="modal">
+  <h2 id="ordenTitulo">Nueva orden</h2><p class="sub">Registra un trabajo de mantenimiento.</p>
+  <input type="hidden" id="o-folio">
+  <div class="field"><label>Máquina *</label><select id="o-maquina"><option value="">— Selecciona —</option></select></div>
+  <div class="field"><label>Solicitante *</label><select id="o-solicitante"><option value="">— Selecciona —</option></select></div>
+  <div class="field"><label>Tipo</label>
+    <select id="o-tipo"><option>Correctivo</option><option>Preventivo</option><option>Cambio</option></select></div>
+  <div class="field"><label>Prioridad</label>
+    <select id="o-prioridad">
+      <option>Normal</option><option>Urgente</option><option>Maquinaria parada</option>
+      <option>Operacion detenida</option><option>Transporte detenido</option>
+    </select></div>
+  <div class="field" id="o-estado-wrap"><label>Estado</label>
+    <select id="o-estado"><option>Abierta</option><option>Proceso</option><option>Cerrada</option><option>Entregada</option></select></div>
+  <div class="field"><label>Descripción</label><textarea id="o-desc" rows="2"></textarea></div>
+  <div class="field" id="o-foto-wrap"><label>Foto / evidencia</label><input type="file" id="o-foto" accept="image/*"></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('orden')">Cancelar</button><button class="btn" onclick="saveOrden()">Guardar</button></div>
+</div></div>
+
+<!-- VER ORDEN -->
+<div class="overlay" id="modal-ver"><div class="modal modal-big">
+  <h2 id="verTitulo">Detalle de orden</h2>
+  <div id="verContenido"></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('ver')" style="flex:1;">Cerrar</button></div>
+</div></div>
+
+<!-- ATENDER ORDEN -->
+<div class="overlay" id="modal-atender"><div class="modal modal-big">
+  <h2 id="atTitulo">Atender orden</h2><p class="sub" id="atSub"></p>
+  <input type="hidden" id="at-folio">
+  <div class="field"><label>Hora de inicio</label>
+    <input id="at-hora" type="datetime-local"><div class="hint">Se llena automáticamente al abrir.</div></div>
+  <div class="field"><label>Observaciones (mínimo 200 caracteres) *</label>
+    <textarea id="at-obs" rows="5" oninput="checkAtender()"></textarea>
+    <div class="hint bad" id="at-obs-hint">0 / 200 caracteres</div></div>
+  <div class="field"><label>Insumos y refacciones utilizadas *</label>
+    <textarea id="at-ins" rows="2" placeholder="Lista de refacciones y materiales usados…" oninput="checkAtender()"></textarea></div>
+  <div class="field"><label>Fotos (hasta 10)</label>
+    <input type="file" id="at-fotos" accept="image/*" multiple onchange="previewFotos()">
+    <div class="preview-fotos" id="at-preview"></div></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="closeModal('atender')">Cancelar</button>
+    <button class="btn btn-orange" id="btnEspera" onclick="abrirEspera()">⏸ Espera almacén</button>
+    <button class="btn" id="btnGuardarAvance" onclick="guardarAvance(false)" disabled>Guardar avance</button>
+    <button class="btn btn-green" id="btnCerrarOrden" onclick="guardarAvance(true)" disabled>Cerrar orden</button>
+  </div>
+</div></div>
+
+<!-- ESPERA POR ALMACÉN -->
+<div class="overlay" id="modal-espera"><div class="modal" style="max-width:460px;">
+  <h2>⏸ Espera por almacén</h2>
+  <p class="sub">La orden se pausará. Describe qué necesitas de almacén.</p>
+  <input type="hidden" id="esp-folio">
+  <div class="field"><label>Refacción o insumo que esperas *</label>
+    <select id="esp-ref"><option value="">— Selecciona refacción —</option></select></div>
+  <div class="field"><label>Detalle adicional (opcional)</label>
+    <textarea id="esp-det" rows="2" placeholder="Cantidad, especificación adicional…"></textarea></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="closeModal('espera')">Cancelar</button>
+    <button class="btn btn-orange" onclick="confirmarEspera()">Confirmar espera</button>
+  </div>
+</div></div>
+
+<!-- REACTIVAR DE ESPERA -->
+<div class="overlay" id="modal-reactivar"><div class="modal" style="max-width:460px;">
+  <h2>✅ Reactivar orden</h2>
+  <p class="sub">Confirma que almacén ya entregó el material.</p>
+  <input type="hidden" id="react-folio">
+  <div class="field"><label>¿Qué entregó almacén? *</label>
+    <textarea id="react-nota" rows="2" placeholder="Describe lo que recibiste de almacén…"></textarea></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="closeModal('reactivar')">Cancelar</button>
+    <button class="btn btn-green" onclick="confirmarReactivar()">Reactivar orden</button>
+  </div>
+</div></div>
+
+<!-- SEGUIMIENTO -->
+<div class="overlay" id="modal-segui"><div class="modal">
+  <h2>Seguimiento</h2><p class="sub" id="seguiFolio"></p>
+  <div class="segui-list" id="seguiList"></div>
+  <div class="field" style="margin-top:14px;"><label>Nueva nota</label>
+    <textarea id="seg-nota" rows="2"></textarea></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('segui')">Cerrar</button><button class="btn btn-green" onclick="saveSeguimiento()">Agregar</button></div>
+</div></div>
+
+<!-- BORRAR -->
+<div class="overlay" id="modal-borrar"><div class="modal" style="max-width:400px;">
+  <h2>Borrar orden</h2><p class="sub">Esta acción no se puede deshacer.</p>
+  <input type="hidden" id="del-folio">
+  <div class="field"><label>Código de autorización</label><input id="del-codigo" type="password" placeholder="••••"></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('borrar')">Cancelar</button><button class="btn btn-rose" onclick="confirmarBorrar()">Borrar</button></div>
+</div></div>
+
+<!-- TÉCNICO (nuevo) -->
+<div class="overlay" id="modal-tecnico"><div class="modal"><h2>Nuevo técnico</h2><p class="sub">Registra al personal.</p>
+  <div class="field"><label>Nombre</label><input id="t-nombre"></div>
+  <div class="field"><label>Especialidad</label><input id="t-esp"></div>
+  <div class="field"><label>Capacitación</label><select id="t-cap"><option>Pendiente</option><option>En curso</option><option>Completada</option></select></div>
+  <div class="field"><label>Evaluación (0-100)</label><input id="t-eval" type="number"></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('tecnico')">Cancelar</button><button class="btn" onclick="saveTecnico()">Guardar</button></div></div></div>
+
+<!-- PERFIL TÉCNICO (coordinador/gerencia) -->
+<div class="overlay" id="modal-tech-profile"><div class="modal modal-big">
+  <h2 id="tpNombre">Perfil del técnico</h2>
+  <div id="tpContenido"></div>
+  <div class="modal-actions" id="tpAcciones">
+    <button class="btn btn-ghost" onclick="closeModal('tech-profile')" style="flex:1;">Cerrar</button>
+  </div>
+</div></div>
+
+<!-- MÁQUINA -->
+<div class="overlay" id="modal-maquina"><div class="modal"><h2>Nueva máquina</h2><p class="sub">Agrega un equipo.</p>
+  <div class="field"><label>Nombre</label><input id="m-nombre"></div>
+  <div class="field"><label>Área</label><input id="m-area"></div>
+  <div class="field"><label>Manual o video (enlace)</label><input id="m-doc"></div>
+  <div class="field"><label>Foto</label><input type="file" id="m-foto" accept="image/*"></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('maquina')">Cancelar</button><button class="btn" onclick="saveMaquina()">Guardar</button></div></div></div>
+
+<!-- REFACCIÓN -->
+<div class="overlay" id="modal-refaccion"><div class="modal"><h2>Nueva refacción</h2><p class="sub">Agrega al inventario.</p>
+  <div class="field"><label>Pieza</label><input id="r-nombre"></div>
+  <div class="field"><label>Máquina asociada</label><input id="r-maquina"></div>
+  <div class="field"><label>Stock actual</label><input id="r-stock" type="number"></div>
+  <div class="field"><label>Stock mínimo</label><input id="r-min" type="number"></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('refaccion')">Cancelar</button><button class="btn" onclick="saveRefaccion()">Guardar</button></div></div></div>
+
+<!-- RAZÓN NO ASISTIÓ -->
+<div class="overlay" id="modal-razon"><div class="modal">
+  <h2>¿Por qué no asististe?</h2>
+  <input type="hidden" id="rz-modulo">
+  <div class="field"><label>Razón</label>
+    <select id="rz-tipo"><option>Enfermedad</option><option>Carga de trabajo</option><option>No me avisaron</option><option>Capacitador no asistió</option><option>Otro</option></select></div>
+  <div class="field"><label>Detalle (opcional)</label><textarea id="rz-detalle" rows="2"></textarea></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('razon')">Cancelar</button><button class="btn" onclick="guardarRazon()">Guardar</button></div>
+</div></div>
+
+<!-- RESPONDER REPORTE -->
+<div class="overlay" id="modal-resp-reporte"><div class="modal">
+  <h2>Responder reporte</h2>
+  <input type="hidden" id="rr-tecnico">
+  <input type="hidden" id="rr-semana">
+  <p class="sub" id="rr-sub"></p>
+  <div class="field"><label>Comentario de coordinación *</label>
+    <textarea id="rr-comentario" rows="3" placeholder="Escribe tu retroalimentación al técnico…"></textarea></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="closeModal('resp-reporte')">Cancelar</button>
+    <button class="btn btn-green" onclick="enviarRespuestaReporte()">Enviar y cerrar</button>
+  </div>
+</div></div>
+
+<!-- FOTO PANTALLA COMPLETA -->
+<div class="foto-full" id="fotoFull"><button class="closebtn" onclick="cerrarFoto()">✕</button><img id="fotoFullImg"></div>
+
+<script>
+/* ============================================================
+   ⬇ PEGA AQUÍ TU URL DEL APPS SCRIPT ⬇
+   ============================================================ */
+const API_URL  = "https://script.google.com/macros/s/AKfycbz5jALi_BD0Yy2a5eW9l5C8v55MJV3yz-LmUuWM0MpbQqklWB_XM3nK5B-nA24agltsFw/exec";
+const LOGO_URL = "https://www.plastomex.com/img/testimonios/PLASTOMEX.png";
+/* ============================================================ */
+
+let datos = {Ordenes:[],Tecnicos:[],Maquinas:[],Refacciones:[],Seguimiento:[],
+             Modulos:[],Capacitacion:[],Reportes_Semanales:[],Intervenciones:[],
+             Solicitantes:[],UsuariosInfo:[],alertasEspera:0};
+let usuarioActual = null;
+let escalaAuto = 0;
+let fotosAtender = [];
+
+/* ===== UTILIDADES ===== */
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function loader(on){document.getElementById('pbar').classList.toggle('show',on);}
+async function pedir(payload){
+  try{
+    const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'});
+    return await r.json();
+  }catch(e){console.error(e);return {ok:false,error:'Sin conexión'};}
+}
+function ponerLogo(){if(LOGO_URL){['loginLogo','sideLogo'].forEach(id=>{const el=document.getElementById(id);el.src=LOGO_URL;el.style.display='block';});document.getElementById('loginLogoFallback').style.display='none';document.getElementById('sideLogoFallback').style.display='none';}}
+function leerFoto(id,cb){const i=document.getElementById(id);if(i.files&&i.files[0]){const r=new FileReader();r.onload=e=>cb(e.target.result);r.readAsDataURL(i.files[0]);}else cb(null);}
+
+/* ===== LOGIN ===== */
+async function hacerLogin(){
+  const usuario=document.getElementById('loginUser').value.trim();
+  const contrasena=document.getElementById('loginPass').value;
+  if(!usuario||!contrasena){document.getElementById('loginError').textContent='Escribe usuario y contraseña.';return;}
+  document.getElementById('loginError').textContent='';
+  loader(true);
+  const r=await pedir({accion:'login',usuario,contrasena});
+  loader(false);
+  if(r&&r.ok){
+    usuarioActual=r.user;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').classList.add('show');
+    document.getElementById('chipNombre').textContent=usuarioActual.nombre;
+    document.getElementById('chipRol').textContent=usuarioActual.rol;
+    aplicarPermisosUI();
+    cargarDatos();
+  }else{
+    document.getElementById('loginError').textContent=(r&&r.error)||'No se pudo entrar.';
+  }
+}
+function logout(){location.reload();}
+
+/* ===== PERMISOS UI ===== */
+function aplicarPermisosUI(){
+  const rol=usuarioActual?usuarioActual.rol:'';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('hidden'));
+  ['btnNuevaOrden','btnNuevoTec','btnNuevaMaq','btnNuevaRef'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.remove('hidden');
+  });
+  if(rol==='tecnico'){
+    document.querySelector('[data-view="tecnicos"]').classList.add('hidden');
+    document.querySelector('[data-view="reportes"]').classList.add('hidden');
+    document.getElementById('btnNuevaMaq').classList.add('hidden');
+    document.getElementById('btnNuevaRef').classList.add('hidden');
+  } else {
+    document.querySelector('[data-view="capacitacion"]').classList.add('hidden');
+    document.querySelector('[data-view="perfil"]').classList.add('hidden');
+  }
+  if(rol==='gerencia'){
+    document.getElementById('btnNuevoTec').classList.add('hidden');
+    document.getElementById('btnNuevaMaq').classList.add('hidden');
+    document.getElementById('btnNuevaRef').classList.add('hidden');
+  }
+}
+function puede(accion){
+  const r=usuarioActual?usuarioActual.rol:'';
+  if(r==='gerencia') return true;
+  if(r==='coordinador') return accion!=='borrar';
+  if(r==='tecnico') return ['crear','avanzar','seguimiento','ver','atender','espera','reactivar'].includes(accion);
+  return false;
+}
+
+/* ===== NAVEGACIÓN ===== */
+function showView(n,btn){
+  document.querySelectorAll('#app main section').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('view-'+n).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(n==='perfil') renderPerfil();
+  if(n==='capacitacion') renderCapacitacion();
+  if(n==='reportes') renderReportes();
+}
+function openModal(t){document.getElementById('modal-'+t).classList.add('show');}
+function closeModal(t){document.getElementById('modal-'+t).classList.remove('show');}
+
+/* ===== CARGAR DATOS ===== */
+async function cargarDatos(){
+  loader(true);
+  try{const res=await fetch(API_URL);datos=await res.json();renderTodo();actualizarBadges();}
+  catch(e){console.error(e);toast('Error al cargar datos.');}
+  loader(false);
+}
+
+function actualizarBadges(){
+  const pendientes = datos.Reportes_Semanales.filter(r=>r.Estado==='Enviado').length;
+  const esperas = datos.alertasEspera||0;
+  const total = pendientes + esperas;
+  const badge = document.getElementById('badgeReportes');
+  badge.textContent = total;
+  badge.classList.toggle('show', total>0);
+}
+
+/* ===== ÓRDENES ===== */
+function nuevaOrden(){
+  document.getElementById('ordenTitulo').textContent='Nueva orden';
+  document.getElementById('o-folio').value='';
+  document.getElementById('o-desc').value='';
+  document.getElementById('o-foto-wrap').style.display='block';
+  document.getElementById('o-estado-wrap').style.display='block';
+  poblarSelectMaquinas('o-maquina','');
+  poblarSelectSolicitantes('o-solicitante','');
+  openModal('orden');
+}
+function editarOrden(folio){
+  const o=datos.Ordenes.find(x=>x.Folio===folio);if(!o)return;
+  document.getElementById('ordenTitulo').textContent='Editar '+folio;
+  document.getElementById('o-folio').value=folio;
+  document.getElementById('o-desc').value=o.Descripcion||'';
+  document.getElementById('o-tipo').value=o.Tipo||'Correctivo';
+  document.getElementById('o-prioridad').value=o.Prioridad||'Normal';
+  document.getElementById('o-foto-wrap').style.display='none';
+  document.getElementById('o-estado-wrap').style.display='none';
+  poblarSelectMaquinas('o-maquina',o.Maquina||'');
+  poblarSelectSolicitantes('o-solicitante',o.Solicitante||'');
+  openModal('orden');
+}
+function poblarSelectMaquinas(selId,val){
+  const sel=document.getElementById(selId);
+  sel.innerHTML='<option value="">— Selecciona máquina —</option>';
+  datos.Maquinas.forEach(m=>{ const o=document.createElement('option'); o.value=m.Nombre; o.textContent=m.Nombre; if(m.Nombre===val)o.selected=true; sel.appendChild(o); });
+}
+function poblarSelectSolicitantes(selId,val){
+  const sel=document.getElementById(selId);
+  sel.innerHTML='<option value="">— Selecciona solicitante —</option>';
+  datos.Solicitantes.forEach(s=>{ const o=document.createElement('option'); o.value=s.Nombre; o.textContent=s.Nombre+(s.Area?' ('+s.Area+')':''); if(s.Nombre===val)o.selected=true; sel.appendChild(o); });
+  // También agrega usuarios del sistema como solicitantes
+  datos.UsuariosInfo.forEach(u=>{ const o=document.createElement('option'); o.value=u.Nombre; o.textContent=u.Nombre+(u.Rol?' ['+u.Rol+']':''); if(u.Nombre===val)o.selected=true; sel.appendChild(o); });
+}
+async function saveOrden(){
+  const folio=document.getElementById('o-folio').value;
+  const maquina=document.getElementById('o-maquina').value;
+  const solicitante=document.getElementById('o-solicitante').value;
+  if(!maquina){alert('Selecciona la máquina.');return;}
+  const base={maquina,solicitante:solicitante||'—',tipo:document.getElementById('o-tipo').value,
+    prioridad:document.getElementById('o-prioridad').value,
+    desc:document.getElementById('o-desc').value.trim()};
+  closeModal('orden');loader(true);
+  if(folio){await pedir({accion:'editarOrden',folio,...base});toast('Orden actualizada ✓');}
+  else{await new Promise(res=>leerFoto('o-foto',async foto=>{
+    await pedir({accion:'nuevaOrden',...base,estado:document.getElementById('o-estado').value,foto});
+    toast('Orden creada ✓');res();
+  }));}
+  await cargarDatos();
+}
+
+/* ===== ACCIONES SOBRE ÓRDENES ===== */
+async function avanzar(folio){
+  const flujo=['Abierta','Proceso','Espera Almacen','Cerrada','Entregada'];
+  const o=datos.Ordenes.find(x=>x.Folio===folio);
+  const i=flujo.indexOf(o.Estado);
+  if(i<0||i>=flujo.length-1)return;
+  if(o.Estado==='Espera Almacen'){toast('Usa "Reactivar" para continuar esta orden.');return;}
+  if(o.Estado==='Cerrada'){toast('Usa "Validar" para entregar.');return;}
+  loader(true);await pedir({accion:'cambiarEstado',folio,estado:flujo[i+1]});toast('Estado actualizado ✓');await cargarDatos();
+}
+async function validar(folio){
+  if(!puede('validar')){toast('Solo coordinación o gerencia puede validar.');return;}
+  loader(true);await pedir({accion:'validarCierre',folio,usuario:usuarioActual.nombre});toast('Orden entregada ✓');await cargarDatos();
+}
+async function cancelar(folio){
+  if(!puede('cancelar')){toast('No tienes permiso.');return;}
+  if(!confirm('¿Cancelar la orden '+folio+'?'))return;
+  loader(true);await pedir({accion:'cancelarOrden',folio});toast('Orden cancelada.');await cargarDatos();
+}
+function pedirBorrar(folio){
+  if(!puede('borrar')){toast('Solo gerencia puede borrar.');return;}
+  document.getElementById('del-folio').value=folio;document.getElementById('del-codigo').value='';openModal('borrar');
+}
+async function confirmarBorrar(){
+  const folio=document.getElementById('del-folio').value;const codigo=document.getElementById('del-codigo').value;
+  closeModal('borrar');loader(true);
+  const r=await pedir({accion:'borrarOrden',folio,codigo});
+  if(r&&r.ok){toast('Orden borrada.');await cargarDatos();}
+  else{toast((r&&r.error)||'No se pudo borrar.');loader(false);}
+}
+
+/* ===== ESPERA POR ALMACÉN ===== */
+function abrirEspera(){
+  const folio=document.getElementById('at-folio').value;
+  closeModal('atender');
+  document.getElementById('esp-folio').value=folio;
+  document.getElementById('esp-det').value='';
+  // Poblar refacciones
+  const sel=document.getElementById('esp-ref');
+  sel.innerHTML='<option value="">— Selecciona refacción —</option>';
+  datos.Refacciones.forEach(r=>{ const o=document.createElement('option'); o.value=r.Nombre+(r.Maquina?' ('+r.Maquina+')':''); o.textContent=o.value; sel.appendChild(o); });
+  openModal('espera');
+}
+async function confirmarEspera(){
+  const folio=document.getElementById('esp-folio').value;
+  const refaccion=document.getElementById('esp-ref').value;
+  const det=document.getElementById('esp-det').value.trim();
+  if(!refaccion){alert('Selecciona la refacción o insumo que esperas.');return;}
+  const texto = refaccion + (det?' — '+det:'');
+  closeModal('espera');loader(true);
+  await pedir({accion:'marcarEsperaAlmacen',folio,refaccion:texto,usuario:usuarioActual.nombre});
+  toast('Orden en espera por almacén ⏸');await cargarDatos();
+}
+function abrirReactivar(folio){
+  document.getElementById('react-folio').value=folio;
+  document.getElementById('react-nota').value='';
+  openModal('reactivar');
+}
+async function confirmarReactivar(){
+  const folio=document.getElementById('react-folio').value;
+  const nota=document.getElementById('react-nota').value.trim();
+  if(!nota){alert('Describe qué entregó almacén.');return;}
+  closeModal('reactivar');loader(true);
+  await pedir({accion:'reactivarDeEspera',folio,nota,usuario:usuarioActual.nombre});
+  toast('Orden reactivada ✓');await cargarDatos();
+}
+
+/* ===== SEGUIMIENTO ===== */
+let seguiFolioActual=null;
+function abrirSeguimiento(folio){
+  seguiFolioActual=folio;
+  document.getElementById('seguiFolio').textContent='Orden '+folio;
+  const notas=datos.Seguimiento.filter(s=>s.Folio===folio);
+  const cont=document.getElementById('seguiList');
+  cont.innerHTML=notas.length?notas.map(n=>{
+    const f=new Date(n.Fecha).toLocaleString('es-MX');
+    const cl=n.Nota&&n.Nota.startsWith('⏸')?'espera':(n.Nota&&n.Nota.startsWith('✅')?'ok':'');
+    return `<div class="segui-item ${cl}"><div class="meta">${f} · ${n.Usuario}</div>${n.Nota}</div>`;
+  }).join(''):'<div style="color:#8aa093;font-size:13px;">Sin notas aún.</div>';
+  document.getElementById('seg-nota').value='';
+  openModal('segui');
+}
+async function saveSeguimiento(){
+  const nota=document.getElementById('seg-nota').value.trim();
+  if(!nota){alert('Escribe la nota.');return;}
+  closeModal('segui');loader(true);
+  await pedir({accion:'nuevoSeguimiento',folio:seguiFolioActual,usuario:usuarioActual.nombre,nota});
+  toast('Nota guardada ✓');await cargarDatos();
+}
+
+/* ===== VER ORDEN ===== */
+function verOrden(folio){
+  const o=datos.Ordenes.find(x=>x.Folio===folio);if(!o)return;
+  const ints=datos.Intervenciones.filter(x=>x.Folio===folio);
+  const notas=datos.Seguimiento.filter(s=>s.Folio===folio);
+  let html=`
+    <div class="profile-row"><span class="lbl">Folio</span><span class="val">${o.Folio}</span></div>
+    <div class="profile-row"><span class="lbl">Máquina</span><span class="val">${o.Maquina}</span></div>
+    <div class="profile-row"><span class="lbl">Solicitante</span><span class="val">${o.Solicitante||'—'}</span></div>
+    <div class="profile-row"><span class="lbl">Tipo</span><span class="val">${o.Tipo||'—'}</span></div>
+    <div class="profile-row"><span class="lbl">Prioridad</span><span class="val">${o.Prioridad||'—'}</span></div>
+    <div class="profile-row"><span class="lbl">Estado</span><span class="val"><span class="badge b-${o.Estado.replace(' ','')}">${o.Estado}</span></span></div>
+    <div class="profile-row"><span class="lbl">Descripción</span><span class="val" style="max-width:60%;text-align:right;">${o.Descripcion||'—'}</span></div>
+    ${o.RefaccionEspera?`<div class="profile-row" style="background:#fff0d4;border-radius:8px;padding:10px;margin:6px 0;"><span class="lbl">⏸ Esperando</span><span class="val">${o.RefaccionEspera}</span></div>`:''}
+    <div class="profile-row"><span class="lbl">Foto inicial</span><span class="val">${o.Foto?`<a href="${o.Foto}" target="_blank">ver</a>`:'—'}</span></div>
+  `;
+  if(ints.length){
+    html+='<h3 style="margin-top:18px;margin-bottom:8px;font-size:13px;color:#5a7367;text-transform:uppercase;">Intervenciones</h3>';
+    ints.forEach(it=>{
+      const fotos=(it.Fotos||'').split(' | ').filter(f=>f);
+      const fhtml=fotos.length?'<div class="preview-fotos">'+fotos.map(f=>`<img src="${f}" onclick="verFoto('${f}')">`).join('')+'</div>':'';
+      html+=`<div class="segui-item"><div class="meta">${new Date(it.HoraInicio).toLocaleString('es-MX')} · ${it.Tecnico}</div>
+        <div><b>Obs:</b> ${it.Observaciones}</div><div><b>Insumos:</b> ${it.Insumos}</div>${fhtml}</div>`;
+    });
+  }
+  if(notas.length){
+    html+='<h3 style="margin-top:18px;margin-bottom:8px;font-size:13px;color:#5a7367;text-transform:uppercase;">Historial</h3>';
+    notas.forEach(n=>{
+      const cl=n.Nota&&n.Nota.startsWith('⏸')?'espera':(n.Nota&&n.Nota.startsWith('✅')?'ok':'');
+      html+=`<div class="segui-item ${cl}"><div class="meta">${new Date(n.Fecha).toLocaleString('es-MX')} · ${n.Usuario}</div>${n.Nota}</div>`;
+    });
+  }
+  document.getElementById('verTitulo').textContent='Orden '+o.Folio;
+  document.getElementById('verContenido').innerHTML=html;
+  openModal('ver');
+}
+
+/* ===== ATENDER ORDEN ===== */
+function atender(folio){
+  const o=datos.Ordenes.find(x=>x.Folio===folio);if(!o)return;
+  document.getElementById('atTitulo').textContent='Atender '+folio;
+  document.getElementById('atSub').textContent=o.Maquina+' — '+(o.Descripcion||'');
+  document.getElementById('at-folio').value=folio;
+  const ahora=new Date();
+  document.getElementById('at-hora').value=new Date(ahora.getTime()-ahora.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.getElementById('at-obs').value='';
+  document.getElementById('at-ins').value='';
+  document.getElementById('at-fotos').value='';
+  document.getElementById('at-preview').innerHTML='';
+  fotosAtender=[];
+  checkAtender();
+  openModal('atender');
+}
+function checkAtender(){
+  const obs=document.getElementById('at-obs').value;
+  const ins=document.getElementById('at-ins').value.trim();
+  const hint=document.getElementById('at-obs-hint');
+  hint.textContent=obs.length+' / 200 caracteres';
+  hint.className=obs.length<200?'hint bad':'hint';
+  const ok=obs.length>=200&&ins.length>0;
+  document.getElementById('btnGuardarAvance').disabled=!ok;
+  document.getElementById('btnCerrarOrden').disabled=!ok;
+}
+function previewFotos(){
+  const inp=document.getElementById('at-fotos');const cont=document.getElementById('at-preview');
+  cont.innerHTML='';fotosAtender=[];
+  const files=Array.from(inp.files).slice(0,10);
+  if(inp.files.length>10)toast('Solo se aceptan hasta 10 fotos.');
+  files.forEach(f=>{const r=new FileReader();r.onload=e=>{fotosAtender.push(e.target.result);const img=document.createElement('img');img.src=e.target.result;img.onclick=()=>verFoto(e.target.result);cont.appendChild(img);};r.readAsDataURL(f);});
+}
+async function guardarAvance(cerrar){
+  const folio=document.getElementById('at-folio').value;
+  closeModal('atender');loader(true);
+  await pedir({accion:'atenderOrden',folio,tecnico:usuarioActual.nombre,
+    horaInicio:document.getElementById('at-hora').value,
+    observaciones:document.getElementById('at-obs').value,
+    insumos:document.getElementById('at-ins').value,fotos:fotosAtender,cerrar});
+  toast(cerrar?'Orden cerrada, esperando aprobación ✓':'Avance guardado ✓');
+  await cargarDatos();
+}
+
+/* ===== FOTO PANTALLA COMPLETA ===== */
+function verFoto(url){document.getElementById('fotoFullImg').src=url;document.getElementById('fotoFull').classList.add('show');}
+function cerrarFoto(){document.getElementById('fotoFull').classList.remove('show');}
+
+/* ===== PERFIL TÉCNICO (coordinador/gerencia) ===== */
+function verPerfilTecnico(nombre){
+  const info=datos.UsuariosInfo.find(u=>u.Nombre===nombre)||{};
+  const cap=datos.Capacitacion.filter(c=>c.Tecnico===nombre);
+  const reps=datos.Reportes_Semanales.filter(r=>r.Tecnico===nombre).sort((a,b)=>new Date(b.SemanaInicio)-new Date(a.SemanaInicio));
+  const pct=Number(info.PorcentajeCompetencia)||0;
+  let html=`
+    <div class="tech-section">
+      <h3>Datos personales</h3>
+      <div class="profile-row"><span class="lbl">Rol</span><span class="val">${info.Rol||'—'}</span></div>
+      <div class="profile-row"><span class="lbl">Carrera</span><span class="val">${info.Carrera||'—'}</span></div>
+      <div class="profile-row"><span class="lbl">Especialidad</span><span class="val">${info.Especialidad||'—'}</span></div>
+      <div class="profile-row"><span class="lbl">Área</span><span class="val">${info.Area||'—'}</span></div>
+      <div class="profile-row"><span class="lbl">Fecha ingreso</span><span class="val">${info.FechaIngreso?new Date(info.FechaIngreso).toLocaleDateString('es-MX'):'—'}</span></div>
+      <div class="profile-row"><span class="lbl">Celular</span><span class="val">${info.Celular||'—'}</span></div>
+      <div class="profile-row"><span class="lbl">Correo</span><span class="val">${info.Correo||'—'}</span></div>
+    </div>
+    <div class="tech-section">
+      <h3>Nivel de competencia</h3>
+      <div style="font-size:36px;font-weight:900;color:var(--green);">${pct}%</div>
+      <div class="compet-bar"><div class="compet-fill" id="tp-bar" style="width:${pct}%"></div></div>
+      ${usuarioActual.rol==='coordinador'?`
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <input type="number" id="tp-pct" value="${pct}" min="0" max="100" style="width:80px;padding:8px;border:2px solid var(--line);border-radius:8px;">
+        <button class="btn btn-sm btn-green" onclick="actualizarPct('${nombre}')">Actualizar %</button>
+      </div>`:''}
+    </div>`;
+  if(cap.length){
+    html+=`<div class="tech-section"><h3>Plan de capacitación</h3>`;
+    cap.forEach(c=>{
+      const est=c.Estado||'Pendiente';
+      const cl=est==='Completado'?'completado':(est==='Vencido'?'vencido':'');
+      html+=`<div class="modulo-card ${cl}" style="margin-bottom:8px;">
+        <div class="info"><h4>${c.Modulo}</h4><p>${c.FechaEstimada?new Date(c.FechaEstimada).toLocaleDateString('es-MX'):'Sin fecha'} · Avance: ${c.PorcentajeAvance||0}%</p>
+        ${c.RazonNoAsistio?`<div style="font-size:11px;color:var(--rose);">${c.RazonNoAsistio}</div>`:''}</div>
+        <span class="badge b-${est==='Completado'?'Cerrada':(est==='Vencido'?'Cancelada':'Abierta')}">${est}</span>
+      </div>`;
+    });
+    html+='</div>';
+  }
+  if(reps.length){
+    html+=`<div class="tech-section"><h3>Últimos reportes semanales</h3>`;
+    reps.slice(0,5).forEach(r=>{
+      const semana=new Date(r.SemanaInicio).toLocaleDateString('es-MX');
+      const noEnv=r.Estado==='No enviado';
+      html+=`<div class="reporte-card ${noEnv?'':'pendiente'}" style="margin-bottom:8px;">
+        <div class="meta">Semana ${semana} · ${r.Estado}</div>
+        ${noEnv?'<i>No enviado</i>':`
+        <div class="reporte-row"><b>Disponibilidad:</b> ${r.Disponibilidad||'—'}</div>
+        <div class="reporte-row"><b>Autoevaluación:</b> ${r.EscalaAuto||'—'}/10</div>
+        ${r.ComentarioCoor?`<div class="reporte-row" style="color:var(--green);"><b>Resp. coordinación:</b> ${r.ComentarioCoor}</div>`:''}`}
+      </div>`;
+    });
+    html+='</div>';
+  }
+  document.getElementById('tpNombre').textContent=nombre;
+  document.getElementById('tpContenido').innerHTML=html;
+  openModal('tech-profile');
+}
+async function actualizarPct(nombre){
+  const pct=parseInt(document.getElementById('tp-pct').value)||0;
+  loader(true);
+  await pedir({accion:'actualizarPorcentaje',nombre,porcentaje:pct});
+  toast('% actualizado ✓');closeModal('tech-profile');await cargarDatos();
+}
+
+/* ===== REPORTES RECIBIDOS (coordinador) ===== */
+function renderReportes(){
+  const filtroTec=document.getElementById('filtroReporteTec').value;
+  const filtroEst=document.getElementById('filtroReporteEst').value;
+  // Poblar filtro técnicos
+  const selTec=document.getElementById('filtroReporteTec');
+  const actualVal=selTec.value;
+  selTec.innerHTML='<option value="">Todos los técnicos</option>';
+  [...new Set(datos.Reportes_Semanales.map(r=>r.Tecnico))].forEach(t=>{
+    const o=document.createElement('option');o.value=t;o.textContent=t;if(t===actualVal)o.selected=true;selTec.appendChild(o);
+  });
+  const lista=datos.Reportes_Semanales.filter(r=>{
+    if(filtroTec&&r.Tecnico!==filtroTec)return false;
+    if(filtroEst&&r.Estado!==filtroEst)return false;
+    return true;
+  }).sort((a,b)=>new Date(b.SemanaInicio)-new Date(a.SemanaInicio));
+  const cont=document.getElementById('reportes-list');
+  const empty=document.getElementById('empty-reportes');
+  if(!lista.length){cont.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  cont.innerHTML=lista.map(r=>{
+    const semana=new Date(r.SemanaInicio).toLocaleDateString('es-MX');
+    const revisado=r.Estado==='Revisado';
+    const noEnv=r.Estado==='No enviado';
+    return `<div class="reporte-card ${revisado?'revisado':'pendiente'}">
+      <h4>${r.Tecnico}</h4>
+      <div class="meta">Semana del ${semana} · <span class="badge ${revisado?'b-Cerrada':(noEnv?'b-Cancelada':'b-Proceso')}">${r.Estado}</span></div>
+      ${noEnv?'<p style="color:#8aa093;font-style:italic;">Este técnico no envió reporte esta semana.</p>':`
+      <div class="reporte-row"><b>Disponibilidad:</b> ${r.Disponibilidad||'—'}</div>
+      <div class="reporte-row"><b>Problemas:</b> ${r.Problemas||'—'}</div>
+      <div class="reporte-row"><b>Positivos:</b> ${r.Positivos||'—'}</div>
+      <div class="reporte-row"><b>Autoevaluación:</b> ${r.EscalaAuto||'—'}/10 — ${r.ComentarioAuto||'—'}</div>
+      ${r.ComentarioCoor?`<div class="reporte-row" style="color:var(--green);margin-top:8px;padding:8px;background:var(--green-pale);border-radius:6px;"><b>Tu respuesta:</b> ${r.ComentarioCoor}</div>`:''}
+      ${!revisado?`<div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn btn-sm btn-green" onclick="abrirRespuestaReporte('${r.Tecnico}','${r.SemanaInicio}')">Responder y cerrar</button>
+        <button class="btn btn-sm btn-ghost" onclick="cerrarReporte('${r.Tecnico}','${r.SemanaInicio}')">Solo cerrar</button>
+      </div>`:''}
+      `}
+    </div>`;
+  }).join('');
+}
+function abrirRespuestaReporte(tecnico,semana){
+  document.getElementById('rr-tecnico').value=tecnico;
+  document.getElementById('rr-semana').value=semana;
+  document.getElementById('rr-sub').textContent=tecnico+' — Semana del '+new Date(semana).toLocaleDateString('es-MX');
+  document.getElementById('rr-comentario').value='';
+  openModal('resp-reporte');
+}
+async function enviarRespuestaReporte(){
+  const tecnico=document.getElementById('rr-tecnico').value;
+  const semana=document.getElementById('rr-semana').value;
+  const comentario=document.getElementById('rr-comentario').value.trim();
+  if(!comentario){alert('Escribe un comentario.');return;}
+  closeModal('resp-reporte');loader(true);
+  await pedir({accion:'responderReporte',tecnico,semana,comentario});
+  toast('Respuesta enviada ✓');await cargarDatos();
+}
+async function cerrarReporte(tecnico,semana){
+  loader(true);
+  await pedir({accion:'cerrarReporte',tecnico,semana});
+  toast('Reporte marcado como revisado ✓');await cargarDatos();
+}
+
+/* ===== MI PERFIL (técnico) ===== */
+function renderPerfil(){
+  if(!usuarioActual)return;
+  document.getElementById('p-nombre').textContent=usuarioActual.nombre||'—';
+  document.getElementById('p-usuario').textContent=usuarioActual.usuario||'—';
+  document.getElementById('p-rol').textContent=usuarioActual.rol||'—';
+  document.getElementById('p-carrera').textContent=usuarioActual.carrera||'—';
+  document.getElementById('p-especialidad').textContent=usuarioActual.especialidad||'—';
+  document.getElementById('p-area').textContent=usuarioActual.area||'—';
+  document.getElementById('p-fecha').textContent=usuarioActual.fechaIngreso?new Date(usuarioActual.fechaIngreso).toLocaleDateString('es-MX'):'—';
+  document.getElementById('p-celular').textContent=usuarioActual.celular||'—';
+  document.getElementById('p-correo').textContent=usuarioActual.correo||'—';
+  const pct=Number(usuarioActual.porcentaje)||0;
+  document.getElementById('p-percent').textContent=pct+'%';
+  document.getElementById('p-percent-bar').style.width=pct+'%';
+  renderEscala();renderHistorialReportes();checkReporte();
+}
+function renderEscala(){
+  const row=document.getElementById('scaleRow');row.innerHTML='';
+  for(let i=1;i<=10;i++){const b=document.createElement('button');b.className='scale-btn';b.textContent=i;b.onclick=()=>{escalaAuto=i;document.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');checkReporte();};row.appendChild(b);}
+  escalaAuto=0;
+}
+function checkReporte(){
+  const algo=(document.getElementById('rep-disp').value+document.getElementById('rep-prob').value+document.getElementById('rep-pos').value+document.getElementById('rep-com').value).trim().length>0;
+  document.getElementById('rep-hint').className=algo?'hint':'hint bad';
+  document.getElementById('rep-hint').textContent=algo?'Listo para enviar.':'Llena al menos un campo para enviar.';
+  document.getElementById('btnEnviarReporte').disabled=!algo;
+}
+async function enviarReporte(){
+  const disp=document.getElementById('rep-disp').value.trim();
+  const prob=document.getElementById('rep-prob').value.trim();
+  const pos=document.getElementById('rep-pos').value.trim();
+  const com=document.getElementById('rep-com').value.trim();
+  if(!disp&&!prob&&!pos&&!com){alert('Llena al menos un campo.');return;}
+  loader(true);
+  await pedir({accion:'guardarReporte',tecnico:usuarioActual.nombre,disponibilidad:disp,problemas:prob,positivos:pos,escala:escalaAuto,comentarioAuto:com});
+  toast('Reporte enviado a coordinación ✓');
+  ['rep-disp','rep-prob','rep-pos','rep-com'].forEach(id=>document.getElementById(id).value='');
+  renderEscala();await cargarDatos();
+}
+function renderHistorialReportes(){
+  const mios=datos.Reportes_Semanales.filter(r=>r.Tecnico===usuarioActual.nombre).sort((a,b)=>new Date(b.SemanaInicio)-new Date(a.SemanaInicio));
+  const cont=document.getElementById('reportesHist');
+  if(!mios.length){cont.innerHTML='<p style="color:#8aa093;font-size:13px;">Aún no has enviado reportes.</p>';return;}
+  cont.innerHTML=mios.map(r=>{
+    const semana=new Date(r.SemanaInicio).toLocaleDateString('es-MX');
+    const noEnv=r.Estado==='No enviado';
+    return `<div class="reporte-card ${noEnv?'':'pendiente'}" style="margin-bottom:10px;">
+      <div class="meta">Semana del ${semana} · ${r.Estado}</div>
+      ${noEnv?'<i style="color:#8aa093;">No enviaste reporte esta semana.</i>':`
+      <div class="reporte-row"><b>Disponibilidad:</b> ${r.Disponibilidad||'—'}</div>
+      <div class="reporte-row"><b>Autoevaluación:</b> ${r.EscalaAuto||'—'}/10</div>
+      ${r.ComentarioCoor?`<div class="reporte-row" style="color:var(--green);padding:8px;background:var(--green-pale);border-radius:6px;margin-top:8px;"><b>Coordinación respondió:</b> ${r.ComentarioCoor}</div>`:''}`}
+    </div>`;
+  }).join('');
+}
+
+/* ===== CAPACITACIÓN (técnico) ===== */
+function renderCapacitacion(){
+  const pct=Number(usuarioActual.porcentaje)||0;
+  document.getElementById('capPercent').textContent=pct+'%';
+  document.getElementById('capPercentBar').style.width=pct+'%';
+  const mios=datos.Capacitacion.filter(c=>c.Tecnico===usuarioActual.nombre);
+  const cont=document.getElementById('cap-list');
+  if(!mios.length){document.getElementById('empty-cap').classList.remove('hidden');cont.innerHTML='';return;}
+  document.getElementById('empty-cap').classList.add('hidden');
+  cont.innerHTML=mios.map(c=>{
+    const estado=c.Estado||'Pendiente';
+    const cl=estado==='Completado'?'completado':(estado==='Vencido'?'vencido':'');
+    const fecha=c.FechaEstimada?new Date(c.FechaEstimada).toLocaleDateString('es-MX'):'—';
+    const accion=estado==='Vencido'?`<button class="btn btn-sm btn-amber" onclick="abrirRazon('${c.Modulo}')">Registrar razón</button>`:'';
+    const razon=c.RazonNoAsistio?`<div style="font-size:11px;color:var(--rose);margin-top:4px;">Razón: ${c.RazonNoAsistio}</div>`:'';
+    return `<div class="modulo-card ${cl}">
+      <div class="info"><h4>${c.Modulo}</h4><p>Fecha: ${fecha} · Avance: ${c.PorcentajeAvance||0}%</p>${razon}</div>
+      <span class="badge b-${estado==='Completado'?'Cerrada':(estado==='Vencido'?'Cancelada':'Abierta')}">${estado}</span>
+      <div>${accion}</div>
+    </div>`;
+  }).join('');
+}
+function abrirRazon(modulo){document.getElementById('rz-modulo').value=modulo;document.getElementById('rz-detalle').value='';openModal('razon');}
+async function guardarRazon(){
+  const modulo=document.getElementById('rz-modulo').value;
+  const tipo=document.getElementById('rz-tipo').value;
+  const detalle=document.getElementById('rz-detalle').value.trim();
+  closeModal('razon');loader(true);
+  await pedir({accion:'registrarRazonNoAsistio',tecnico:usuarioActual.nombre,modulo,razon:tipo+(detalle?' — '+detalle:'')});
+  toast('Razón registrada ✓');await cargarDatos();
+}
+
+/* ===== RENDER PRINCIPAL ===== */
+function renderTodo(){renderOrdenes();renderTecnicos();renderMaquinas();renderRefacciones();actualizarBadges();}
+
+function priClase(p){
+  if(!p)return'pri-Normal';
+  if(p.includes('parada'))return'pri-Parada';
+  if(p.includes('detenida')||p.includes('Detenida'))return'pri-Detenida';
+  if(p.includes('Transporte'))return'pri-Transporte';
+  if(p==='Urgente')return'pri-Urgente';
+  return'pri-Normal';
+}
+
+function renderOrdenes(){
+  const tb=document.getElementById('tbody-ordenes');tb.innerHTML='';
+  const cnt={Abierta:0,Proceso:0,Cerrada:0,Entregada:0};
+  const q=(document.getElementById('buscar').value||'').toLowerCase();
+  const fe=document.getElementById('filtroEstado').value;
+  const fp=document.getElementById('filtroPrioridad').value;
+  let vis=0;
+  datos.Ordenes.forEach(o=>{
+    if(cnt[o.Estado]!==undefined)cnt[o.Estado]++;
+    const txt=(o.Folio+' '+o.Maquina+' '+(o.Solicitante||'')).toLowerCase();
+    if(q&&!txt.includes(q))return;
+    if(fe&&o.Estado!==fe)return;
+    if(fp&&o.Prioridad!==fp)return;
+    vis++;
+    const foto=o.Foto?`<a href="${o.Foto}" target="_blank">ver</a>`:'—';
+    const estadoKey=o.Estado.replace(' ','');
+    let acts=`<button class="btn-sm btn btn-ghost" onclick="verOrden('${o.Folio}')">👁 Ver</button>`;
+    const activa=!['Entregada','Cancelada'].includes(o.Estado);
+    if(activa&&puede('atender')&&o.Estado!=='Espera Almacen') acts+=`<button class="btn-sm btn btn-purple" onclick="atender('${o.Folio}')">🔧 Atender</button>`;
+    if(o.Estado==='Espera Almacen'&&puede('reactivar')) acts+=`<button class="btn-sm btn btn-orange" onclick="abrirReactivar('${o.Folio}')">✅ Reactivar</button>`;
+    if(activa&&o.Estado!=='Cerrada'&&o.Estado!=='Espera Almacen'&&puede('avanzar')&&usuarioActual.rol!=='tecnico') acts+=`<button class="btn-sm btn btn-blue" onclick="avanzar('${o.Folio}')">Avanzar</button>`;
+    if(o.Estado==='Cerrada'&&puede('validar')) acts+=`<button class="btn-sm btn btn-green" onclick="validar('${o.Folio}')">Validar</button>`;
+    if(puede('seguimiento')) acts+=`<button class="btn-sm btn btn-ghost" onclick="abrirSeguimiento('${o.Folio}')">Segui.</button>`;
+    if(activa&&puede('crear')&&usuarioActual.rol!=='tecnico') acts+=`<button class="btn-sm btn btn-amber" onclick="editarOrden('${o.Folio}')">Editar</button>`;
+    if(activa&&puede('cancelar')) acts+=`<button class="btn-sm btn btn-rose" onclick="cancelar('${o.Folio}')">Cancelar</button>`;
+    if(puede('borrar')) acts+=`<button class="btn-sm btn btn-rose" onclick="pedirBorrar('${o.Folio}')">🗑</button>`;
+    // Highlight espera rows
+    const rowStyle=o.Estado==='Espera Almacen'?'style="background:#fff9f0;"':'';
+    tb.innerHTML+=`<tr ${rowStyle}><td><b>${o.Folio}</b></td><td>${o.Maquina||'—'}</td><td>${o.Solicitante||'—'}</td>
+      <td><span class="pri ${priClase(o.Prioridad||'Normal')}">${o.Prioridad||'Normal'}</span></td>
+      <td>${o.Tipo||'—'}</td>
+      <td><span class="badge b-${estadoKey}">${o.Estado}</span></td>
+      <td style="font-size:12px;">${o.Tecnico&&o.Tecnico!=='—'?o.Tecnico:'—'}</td>
+      <td><div class="acts">${acts}</div></td></tr>`;
+  });
+  document.getElementById('cnt-Abierta').textContent=cnt.Abierta;
+  document.getElementById('cnt-Proceso').textContent=cnt.Proceso;
+  document.getElementById('cnt-Cerrada').textContent=cnt.Cerrada;
+  document.getElementById('cnt-Entregada').textContent=cnt.Entregada;
+  document.getElementById('empty-ordenes').classList.toggle('hidden',vis>0);
+}
+
+function renderTecnicos(){
+  const tb=document.getElementById('tbody-tecnicos');tb.innerHTML='';
+  const rol=usuarioActual?usuarioActual.rol:'';
+  datos.Tecnicos.forEach(t=>{
+    const info=datos.UsuariosInfo.find(u=>u.Nombre===t.Nombre)||{};
+    const pct=Number(info.PorcentajeCompetencia)||0;
+    const pctHtml=`<div style="display:flex;align-items:center;gap:8px;">
+      <div style="flex:1;height:8px;background:var(--line);border-radius:4px;"><div style="height:100%;width:${pct}%;background:var(--green-bright);border-radius:4px;"></div></div>
+      <span style="font-size:12px;font-weight:700;">${pct}%</span></div>`;
+    const btnPerfil=(rol==='coordinador'||rol==='gerencia')?`<button class="btn btn-sm btn-ghost" onclick="verPerfilTecnico('${t.Nombre}')">Ver perfil</button>`:'';
+    tb.innerHTML+=`<tr><td><b>${t.Nombre}</b></td><td>${t.Especialidad||'—'}</td><td>${t.Capacitacion||'—'}</td><td style="min-width:120px;">${pctHtml}</td><td>${btnPerfil}</td></tr>`;
+  });
+  document.getElementById('empty-tecnicos').classList.toggle('hidden',datos.Tecnicos.length>0);
+}
+
+function renderMaquinas(){
+  const tb=document.getElementById('tbody-maquinas');tb.innerHTML='';
+  datos.Maquinas.forEach(m=>{
+    const doc=m.Documento?`<a href="${m.Documento}" target="_blank">Ver</a>`:'—';
+    const foto=m.Foto?`<a href="${m.Foto}" target="_blank">ver</a>`:'—';
+    tb.innerHTML+=`<tr><td><b>${m.Nombre}</b></td><td>${m.Area||'—'}</td><td>${doc}</td><td>${foto}</td></tr>`;
+  });
+  document.getElementById('empty-maquinas').classList.toggle('hidden',datos.Maquinas.length>0);
+}
+
+function renderRefacciones(){
+  const tb=document.getElementById('tbody-refacciones');tb.innerHTML='';
+  datos.Refacciones.forEach(r=>{
+    const bajo=Number(r.Stock)<=Number(r.Minimo);
+    const est=bajo?'<span class="badge" style="background:#f6dde2;color:var(--rose)">⚠ Bajo</span>':'<span class="badge b-Cerrada">OK</span>';
+    tb.innerHTML+=`<tr><td><b>${r.Nombre}</b></td><td>${r.Maquina||'—'}</td><td>${r.Stock}</td><td>${r.Minimo}</td><td>${est}</td></tr>`;
+  });
+  document.getElementById('empty-refacciones').classList.toggle('hidden',datos.Refacciones.length>0);
+}
+
+/* ===== CATÁLOGOS ===== */
+async function saveTecnico(){const nombre=document.getElementById('t-nombre').value.trim();if(!nombre){alert('Escribe el nombre.');return;}closeModal('tecnico');loader(true);await pedir({accion:'nuevoTecnico',nombre,esp:document.getElementById('t-esp').value.trim()||'—',cap:document.getElementById('t-cap').value,eval:document.getElementById('t-eval').value||'—'});toast('Técnico guardado ✓');await cargarDatos();}
+async function saveMaquina(){const nombre=document.getElementById('m-nombre').value.trim();if(!nombre){alert('Escribe el equipo.');return;}closeModal('maquina');loader(true);await new Promise(res=>leerFoto('m-foto',async foto=>{await pedir({accion:'nuevaMaquina',nombre,area:document.getElementById('m-area').value.trim()||'—',doc:document.getElementById('m-doc').value.trim(),foto});res();}));toast('Máquina guardada ✓');await cargarDatos();}
+async function saveRefaccion(){const nombre=document.getElementById('r-nombre').value.trim();if(!nombre){alert('Escribe la pieza.');return;}closeModal('refaccion');loader(true);await pedir({accion:'nuevaRefaccion',nombre,maquina:document.getElementById('r-maquina').value.trim()||'—',stock:parseInt(document.getElementById('r-stock').value)||0,min:parseInt(document.getElementById('r-min').value)||0});toast('Refacción guardada ✓');await cargarDatos();}
+
+/* ===== ARRANCAR ===== */
+ponerLogo();
+loader(false);
+if(API_URL.startsWith('PEGA')){toast('Falta pegar la URL del script.');}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')hacerLogin();});
+</script>
+</body>
+</html>
