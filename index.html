@@ -3735,30 +3735,7 @@ const LOGO_URL = "https://www.plastomex.com/img/testimonios/PLASTOMEX.png";
     Solicitantes: [],
     KPIs: {}   ← calculados en el servidor o aquí según prefieras
   }
-*/
-/* ──────────────────────────────────────────────────────────────────
-   DATOS EN MEMORIA — con ejemplos precargados para demostración.
-   Al conectar con el Apps Script estos se reemplazarán con datos reales.
-   Para eliminar los ejemplos: borrar los arrays y dejar solo [].
-   ────────────────────────────────────────────────────────────────── */
-let DATOS = {
-  Ordenes: [  ],
-  Maquinas: [ ],
-  Refacciones: [ ],
-  Tecnicos: [ ],
-  Herramienta: [ ],
-  Capacitacion: [ ],
-  Modulos: [ ],
-  Reportes: [],
-  Solicitudes: [ ],
-  Usuarios: [ ],
-  Mensajes: [ ],
-  Areas: [ ],
-  Solicitantes: [ ],
-  Intervenciones: [ ],
-  Seguimiento: [ ],
-  KPIs: {}
-};
+
 
 /* Usuario activo después del login */
 let USUARIO = null;
@@ -4250,7 +4227,7 @@ function toggleLoginPass() {
   const btn = document.getElementById('loginEye');
   const show = inp.type === 'password';
   inp.type = show ? 'text' : 'password';
-  btn.textContent = show ? '🙈' : '👁';
+  btn.textContent = show ? '👁' : '*';
   inp.focus();
 }
 
